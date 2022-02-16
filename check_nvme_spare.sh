@@ -37,10 +37,19 @@ raise() {
     return 3
 }
 
-main() {
-    local 
+require_command() {
+    local package cmd error
+    required=0
+    for string in $@ ;do
+        package=${string%%:*}
+        cmd=${string##*:}
+        type ${cmd} &>/dev/null || { raise "${package} is required."; required=1; } ||:
+    done
+    [[ ${required} == 1 ]] && return 3
+}
 
-    type nvme &>/dev/null || raise "\"nvme-cli\" is required."
+main() {
+    require_command 'nvme-cli:nvme' 'jq:jq'
 
     opt_parse "$@"
     [[ ${FLAG_HELP} == 1 ]] && usage
